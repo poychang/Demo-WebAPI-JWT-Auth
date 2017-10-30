@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DemoWebApiJwtAuth.Options;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -52,6 +53,38 @@ namespace DemoWebApiJwtAuth
                 options.ValidFor = TimeSpan.FromMinutes(10);
                 options.SigningCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
             });
+
+            // 設定驗證的 Policy
+            services
+                .AddAuthorization(options =>
+                {
+                    options.AddPolicy("Admin", policy => policy.RequireClaim("Role", "Admin"));
+                    options.AddPolicy("Member", policy => policy.RequireClaim("Role", "Member"));
+                })
+                .AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)],
+
+                        ValidateAudience = true,
+                        ValidAudience = jwtAppSettingOptions[nameof(JwtIssuerOptions.Audience)],
+
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = signingKey,
+
+                        RequireExpirationTime = true,
+                        ValidateLifetime = true,
+
+                        ClockSkew = TimeSpan.Zero
+                    };
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
