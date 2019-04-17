@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DemoWebApiJwtAuth.Options;
+﻿using DemoWebApiJwtAuth.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -11,9 +6,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System;
+using System.Text;
 
 namespace DemoWebApiJwtAuth
 {
@@ -32,7 +27,7 @@ namespace DemoWebApiJwtAuth
             // 註冊 Options Pattern 服務，將配置內容註冊到容器裡，來獲取對應的服務 Provider 對象
             services.AddOptions();
 
-            // 設定全面驗證 MVC 路由
+            // 設定使用驗證 MVC 路由
             services.AddMvc(config =>
             {
                 var policy = new AuthorizationPolicyBuilder()
@@ -42,26 +37,27 @@ namespace DemoWebApiJwtAuth
             });
 
             // 從 appsettings.json 中取得 JWT 配置
-            var jwtAppSettingOptions = Configuration.GetSection(nameof(JwtIssuerOptions));
-            var signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtAppSettingOptions["SecretKey"]));
+            var jwtOptions = Configuration.GetSection(nameof(JwtOptions));
 
             // 設定 JwtIssuerOptions
-            services.Configure<JwtIssuerOptions>(options =>
+            services.Configure<JwtOptions>(options =>
             {
-                options.Issuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)];
-                options.Audience = jwtAppSettingOptions[nameof(JwtIssuerOptions.Audience)];
+                options.Issuer = jwtOptions[nameof(JwtOptions.Issuer)];
+                options.Audience = jwtOptions[nameof(JwtOptions.Audience)];
                 options.ValidFor = TimeSpan.FromMinutes(10);
-                options.SigningCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
+                options.SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtOptions[nameof(JwtOptions.SecurityKey)])), SecurityAlgorithms.HmacSha256);
             });
 
             // 設定驗證的 Policy
-            services
-                .AddAuthorization(options =>
+            services.AddAuthorization(options =>
                 {
+                    // 設定驗證原則
+                    // 這裡僅驗證是否有指定角色
                     options.AddPolicy("Admin", policy => policy.RequireClaim("Role", "Admin"));
                     options.AddPolicy("Member", policy => policy.RequireClaim("Role", "Member"));
-                })
-                .AddAuthentication(options =>
+                });
+            services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -71,13 +67,13 @@ namespace DemoWebApiJwtAuth
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
-                        ValidIssuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)],
+                        ValidIssuer = jwtOptions[nameof(JwtOptions.Issuer)],
 
                         ValidateAudience = true,
-                        ValidAudience = jwtAppSettingOptions[nameof(JwtIssuerOptions.Audience)],
+                        ValidAudience = jwtOptions[nameof(JwtOptions.Audience)],
 
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = signingKey,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtOptions[nameof(JwtOptions.SecurityKey)])),
 
                         RequireExpirationTime = true,
                         ValidateLifetime = true,
@@ -95,9 +91,8 @@ namespace DemoWebApiJwtAuth
                 app.UseDeveloperExceptionPage();
             }
 
-            // 負責自動驗證權限的 Middleware
+            // 使用驗證權限的 Middleware
             app.UseAuthentication();
-
             app.UseMvc();
         }
     }

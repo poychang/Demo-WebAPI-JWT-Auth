@@ -14,23 +14,23 @@ using Microsoft.Extensions.Options;
 namespace DemoWebApiJwtAuth.Controllers
 {
     [Route("api/[controller]")]
-    public class JwtController : Controller
+    public class JwtAuthController : Controller
     {
         /// <summary>
         /// JWT 設定項
         /// </summary>
-        private readonly JwtIssuerOptions _jwtIssuerOptions;
+        private readonly JwtOptions _jwtOptions;
 
         /// <summary>
         /// 建構式
         /// </summary>
         /// <param name="jwtOptions"></param>
-        public JwtController(IOptions<JwtIssuerOptions> jwtOptions)
+        public JwtAuthController(IOptions<JwtOptions> jwtOptions)
         {
-            _jwtIssuerOptions = jwtOptions.Value;
+            _jwtOptions = jwtOptions.Value;
         }
 
-        // POST: api/jwt
+        // POST: api/JwtAuth
         /// <summary>
         /// 登入取得並取得 JWT
         /// </summary>
@@ -49,24 +49,24 @@ namespace DemoWebApiJwtAuth.Controllers
 
             // 產生 JWT 並進行編碼
             var jwt = new JwtSecurityToken(
-                issuer: _jwtIssuerOptions.Issuer,
-                audience: _jwtIssuerOptions.Audience,
+                issuer: _jwtOptions.Issuer,
+                audience: _jwtOptions.Audience,
                 claims: new[]
                 {
                     new Claim(JwtRegisteredClaimNames.Sub, logingUser.Username),
-                    new Claim(JwtRegisteredClaimNames.Jti, await _jwtIssuerOptions.JtiGenerator()),
-                    new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(_jwtIssuerOptions.IssuedAt).ToString(), ClaimValueTypes.Integer64),
+                    new Claim(JwtRegisteredClaimNames.Jti, await _jwtOptions.JtiGenerator()),
+                    new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(_jwtOptions.IssuedAt).ToString(), ClaimValueTypes.Integer64),
                     identity.FindFirst("Role")
                 },
-                notBefore: _jwtIssuerOptions.NotBefore,
-                expires: _jwtIssuerOptions.Expiration,
-                signingCredentials: _jwtIssuerOptions.SigningCredentials);
+                notBefore: _jwtOptions.NotBefore,
+                expires: _jwtOptions.Expiration,
+                signingCredentials: _jwtOptions.SigningCredentials);
             var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
 
             var response = new
             {
                 accessToken = encodedJwt,
-                expiresIn = (int)_jwtIssuerOptions.ValidFor.TotalSeconds
+                expiresIn = (int)_jwtOptions.ValidFor.TotalSeconds
             };
             return new JsonResult(response);
         }

@@ -7,7 +7,7 @@ namespace DemoWebApiJwtAuth.Options
     /// <summary>
     /// JWT 設定項
     /// </summary>
-    public class JwtIssuerOptions
+    public class JwtOptions
     {
         /// <summary>
         /// iss, Issuer, 簽發者
@@ -61,5 +61,10 @@ namespace DemoWebApiJwtAuth.Options
         /// 產生 JWT 時所使用的簽名密鑰
         /// </summary>
         public SigningCredentials SigningCredentials { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string SecurityKey { get; set; }
     }
 }
