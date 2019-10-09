@@ -63,8 +63,8 @@ namespace DemoWebApiJwtAuth.Options
         public SigningCredentials SigningCredentials { get; set; }
 
         /// <summary>
-        /// 
+        /// 加密簽名用的密鑰
         /// </summary>
-        public string SecurityKey { get; set; }
+        public string SecretKey { get; set; }
     }
 }

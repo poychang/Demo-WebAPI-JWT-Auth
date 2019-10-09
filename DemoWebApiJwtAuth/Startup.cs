@@ -46,7 +46,7 @@ namespace DemoWebApiJwtAuth
                 options.Audience = jwtOptions[nameof(JwtOptions.Audience)];
                 options.ValidFor = TimeSpan.FromMinutes(10);
                 options.SigningCredentials = new SigningCredentials(
-                    new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtOptions[nameof(JwtOptions.SecurityKey)])), SecurityAlgorithms.HmacSha256);
+                    new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtOptions[nameof(JwtOptions.SecretKey)])), SecurityAlgorithms.HmacSha256);
             });
 
             // 設定驗證的 Policy
@@ -73,7 +73,7 @@ namespace DemoWebApiJwtAuth
                         ValidAudience = jwtOptions[nameof(JwtOptions.Audience)],
 
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtOptions[nameof(JwtOptions.SecurityKey)])),
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtOptions[nameof(JwtOptions.SecretKey)])),
 
                         RequireExpirationTime = true,
                         ValidateLifetime = true,
