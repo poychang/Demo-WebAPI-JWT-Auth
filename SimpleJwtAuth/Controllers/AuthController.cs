@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
@@ -38,9 +36,9 @@ namespace SimpleJwtAuth.Controllers
             });
             // STEP2: 取得對稱式加密 JWT Signature 的金鑰
             // 這部分是選用，但此範例在 Startup.cs 中有設定 ValidateIssuerSigningKey = true 所以這裡必填
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:SecureKey"]));
             // STEP3: 建立 JWT TokenHandler 以及用於描述 JWT 的 TokenDescriptor
-            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenHandler = new JsonWebTokenHandler();
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Issuer = _config["Jwt:Issuer"],
@@ -49,12 +47,10 @@ namespace SimpleJwtAuth.Controllers
                 Expires = DateTime.Now.AddMinutes(30),
                 SigningCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256)
             };
-            // 產出所需要的 JWT Token 物件
-            var securityToken = tokenHandler.CreateToken(tokenDescriptor);
-            // 產出序列化的 JWT Token 字串
-            var serializeToken = tokenHandler.WriteToken(securityToken);
+            // 產出 JWT
+            var token = tokenHandler.CreateToken(tokenDescriptor);
 
-            return new ContentResult() { Content = serializeToken };
+            return new ContentResult() { Content = token };
         }
     }
 }

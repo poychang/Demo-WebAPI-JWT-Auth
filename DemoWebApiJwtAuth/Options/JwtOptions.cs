@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.IdentityModel.Tokens;
 
 namespace DemoWebApiJwtAuth.Options
 {
@@ -13,19 +11,19 @@ namespace DemoWebApiJwtAuth.Options
         /// iss, Issuer, 簽發者
         /// </summary>
         /// <remarks>代表 JWT 的簽發主體。通常會放站台網址。</remarks>
-        public string Issuer { get; set; }
+        public string Issuer { get; set; } = string.Empty;
 
         /// <summary>
         /// sub, Subject, 主體
         /// </summary>
         /// <remarks>代表 JWT 的主體，即它的所有人。通常會放站台名稱。</remarks>
-        public string Subject { get; set; }
+        public string Subject { get; set; } = string.Empty;
 
         /// <summary>
         /// aud, Audience, 對象
         /// </summary>
         /// <remarks>代表 JWT 的接收對象。通常會放對象名稱（String）或站台網址（URL）。</remarks>
-        public string Audience { get; set; }
+        public string Audience { get; set; } = string.Empty;
 
         /// <summary>
         /// nbf, Not Before, 非之前
@@ -60,11 +58,11 @@ namespace DemoWebApiJwtAuth.Options
         /// <summary>
         /// 產生 JWT 時所使用的簽名密鑰
         /// </summary>
-        public SigningCredentials SigningCredentials { get; set; }
+        public SigningCredentials SigningCredentials { get; set; } = default!;
 
         /// <summary>
         /// 加密簽名用的密鑰
         /// </summary>
-        public string SecretKey { get; set; }
+        public string SecretKey { get; set; } = string.Empty;
     }
 }

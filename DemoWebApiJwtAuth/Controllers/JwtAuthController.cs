@@ -1,13 +1,12 @@
-﻿using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Principal;
-using System.Threading.Tasks;
-using DemoWebApiJwtAuth.Models;
+﻿using DemoWebApiJwtAuth.Models;
 using DemoWebApiJwtAuth.Options;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
+using System.Security.Principal;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -34,34 +33,35 @@ namespace DemoWebApiJwtAuth.Controllers
         /// <summary>
         /// 登入取得並取得 JWT
         /// </summary>
-        /// <param name="logingUser">使用者帳號資訊</param>
+        /// <param name="loginUser">使用者帳號資訊</param>
         /// <returns></returns>
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> Post([FromBody]LoginModel logingUser)
+        public async Task<IActionResult> Post([FromBody] LoginModel loginUser)
         {
             // 驗證並取得使用者資訊
-            var identity = await GetClaimsIdentity(logingUser.Username, logingUser.Password);
+            var identity = await GetClaimsIdentity(loginUser.Username, loginUser.Password);
             if (identity == null)
             {
                 return BadRequest("Invalid credentials");
             }
 
             // 產生 JWT 並進行編碼
-            var jwt = new JwtSecurityToken(
-                issuer: _jwtOptions.Issuer,
-                audience: _jwtOptions.Audience,
-                claims: new[]
-                {
-                    new Claim(JwtRegisteredClaimNames.Sub, logingUser.Username),
+            var jwt = new SecurityTokenDescriptor {
+                Issuer = _jwtOptions.Issuer,
+                Audience = _jwtOptions.Audience,
+                Subject = new ClaimsIdentity(
+                [
+                    new Claim(JwtRegisteredClaimNames.Sub, loginUser.Username),
                     new Claim(JwtRegisteredClaimNames.Jti, await _jwtOptions.JtiGenerator()),
                     new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(_jwtOptions.IssuedAt).ToString(), ClaimValueTypes.Integer64),
                     identity.FindFirst("Role")
-                },
-                notBefore: _jwtOptions.NotBefore,
-                expires: _jwtOptions.Expiration,
-                signingCredentials: _jwtOptions.SigningCredentials);
-            var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
+                ]),
+                NotBefore = _jwtOptions.NotBefore,
+                Expires = _jwtOptions.Expiration,
+                SigningCredentials = _jwtOptions.SigningCredentials
+            };
+            var encodedJwt = new JsonWebTokenHandler().CreateToken(jwt);
 
             var response = new
             {

@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 using System.Security.Claims;
 
 namespace DemoWebApiJwtAuth.Controllers
@@ -8,7 +7,7 @@ namespace DemoWebApiJwtAuth.Controllers
     [Route("api/[controller]")]
     public class JwtTestController : Controller
     {
-        // GET api/JwtTest/Anonymous
+        // GET api/JwtTest/anonymous
         /// <summary>
         /// 使用匿名登入，無視於身分驗證
         /// </summary>
@@ -26,7 +25,7 @@ namespace DemoWebApiJwtAuth.Controllers
         /// 使用身分驗證，HTTP 的 Authorization Header 必須設定合法的 JWT Bearer Token 才能使用
         /// </summary>
         /// <returns></returns>
-        // GET api/JwtTest/Authorize
+        // GET api/JwtTest/authorize
         [Authorize]
         [Route("authorize")]
         [HttpGet]
@@ -49,7 +48,7 @@ namespace DemoWebApiJwtAuth.Controllers
             return new ContentResult() { Content = $@"For all client who's role is admin or administrator. {name}" };
         }
 
-        // GET: api/JwtTest/Admin
+        // GET: api/JwtTest/admin
         /// <summary>
         /// 使用原則驗證，所提供的 JWT Bearer Token 必須通過 Admin 驗證原則才能使用
         /// </summary>
@@ -61,7 +60,7 @@ namespace DemoWebApiJwtAuth.Controllers
             return new ContentResult() { Content = "I Am Admin" };
         }
 
-        // GET: api/JwtTest/Member
+        // GET: api/JwtTest/member
         /// <summary>
         /// 使用原則驗證，所提供的 JWT Bearer Token 必須通過 Member 驗證原則才能使用
         /// </summary>
